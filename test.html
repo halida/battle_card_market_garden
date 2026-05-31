@@ -3,140 +3,187 @@
 <head>
   <meta charset="utf-8">
   <title>Battle Card - Tests</title>
-  <link rel="stylesheet" href="https://unpkg.com/mocha@10/mocha.css">
 </head>
 <body>
   <div id="mocha"></div>
   <div id="log" style="display:none"></div>
-  <div id="mapBoard" style="display:none"></div>
+  <div id="mapBoard" style="display:none"><div class="map-turn-die"><strong id="turnDie" class="die turn">1</strong></div><div class="location" data-loc="arnhem"></div><div class="location" data-loc="nijmegen"></div><div class="location" data-loc="grave"></div><div class="location" data-loc="eindhoven"></div><div class="location" data-loc="belgium"></div></div>
   <div id="orders" style="display:none"></div>
-  <div id="moveUnit" style="display:none"></div>
-  <div id="moveTarget" style="display:none"></div>
-  <div id="turnDie" style="display:none"></div>
+  <select id="moveUnit" style="display:none"></select>
+  <select id="moveTarget" style="display:none"></select>
   <div id="phaseList" style="display:none"></div>
   <div id="phaseHelp" style="display:none"></div>
   <div id="lastEvents" style="display:none"></div>
   <div id="primaryAction" style="display:none"></div>
-  <div id="moveBtn" style="display:none"></div>
+  <button id="resetGame" style="display:none"></button>
+  <button id="moveBtn" style="display:none"></button>
   <div id="dicePool" style="display:none"></div>
-  <div class="map-turn-die" style="display:none"></div>
-  <select id="languageSelect"><option value="zh"><option value="en"></select>
-  <button id="closeInfo"></button>
+  <select id="languageSelect" style="display:none"><option value="zh"><option value="en"></select>
+  <button id="closeInfo" style="display:none"></button>
+  <a id="infoLink" style="display:none"></a>
+  <div id="infoModal" style="display:none"></div>
 
-  <script src="https://unpkg.com/jquery@3.7/dist/jquery.min.js"></script>
-  <script src="https://unpkg.com/chai@4/chai.js"></script>
-  <script src="https://unpkg.com/mocha@10/mocha.js"></script>
-  <script>mocha.setup('bdd')</script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="app.js"></script>
   <script>
-    const assert = chai.assert;
+    // ---- inline Jest-like test runner ----
+    var SUITES = [], CURR = null;
+    function describe(name, fn) { CURR = { name: name, tests: [], beforeEach: null }; SUITES.push(CURR); fn(); CURR = null; }
+    function beforeEach(fn) { if (CURR) CURR.beforeEach = fn; }
+    function it(name, fn) { if (CURR) CURR.tests.push({ name: name, fn: fn }); }
+    function expect(actual) {
+      var _not = false, _obj = { actual: actual };
+      _obj.toBe = function (expected) {
+        if (!_not && !Object.is(actual, expected)) throw new Error('expected ' + JSON.stringify(expected) + ' but got ' + JSON.stringify(actual));
+        if (_not && Object.is(actual, expected)) throw new Error('expected not ' + JSON.stringify(expected));
+      };
+      _obj.toEqual = function (expected) {
+        var a = JSON.stringify(actual), b = JSON.stringify(expected);
+        if (!_not && a !== b) throw new Error('expected ' + b + ' but got ' + a);
+        if (_not && a === b) throw new Error('expected not equal ' + b);
+      };
+      _obj.toBeGreaterThan = function (expected) {
+        if (!_not && !(actual > expected)) throw new Error('expected ' + actual + ' > ' + expected);
+        if (_not && actual > expected) throw new Error('expected ' + actual + ' not > ' + expected);
+      };
+      Object.defineProperty(_obj, 'not', { get: function () { _not = true; return _obj; } });
+      return _obj;
+    }
+
+    function runTests() {
+      var out = document.getElementById('mocha');
+      out.innerHTML = '<h2>Jest Tests</h2>';
+      var pass = 0, fail = 0;
+      for (var s = 0; s < SUITES.length; s++) {
+        var suite = SUITES[s], block = document.createElement('div');
+        block.innerHTML = '<h3>' + suite.name + '</h3>';
+        var list = document.createElement('ul');
+        for (var t = 0; t < suite.tests.length; t++) {
+          var test = suite.tests[t];
+          try {
+            if (suite.beforeEach) suite.beforeEach();
+            test.fn();
+            list.innerHTML += '<li style="color:#090">\u2713 ' + test.name + '</li>';
+            pass++;
+          } catch (e) {
+            list.innerHTML += '<li style="color:#c00">\u2717 ' + test.name + ': ' + e.message + '</li>';
+            fail++;
+          }
+        }
+        block.appendChild(list);
+        out.appendChild(block);
+      }
+      var color = fail > 0 ? '#c00' : '#090';
+      out.innerHTML += '<p style="font-weight:bold;color:' + color + '">' + pass + ' passed, ' + fail + ' failed</p>';
+    }
 
     function resetGame() { game = initialGame(); }
 
+    // ---- Jest-style tests ----
     describe('initialGame', function () {
       it('returns valid state', function () {
         resetGame();
-        assert.equal(game.phase, 'setup');
-        assert.equal(game.turn, 1);
-        assert.equal(game.locations.arnhem.allied.strength, 5);
+        expect(game.phase).toBe('setup');
+        expect(game.turn).toBe(1);
+        expect(game.locations.arnhem.allied.strength).toBe(5);
       });
     });
 
     describe('advantage', function () {
-      it('allied > german = All', function () { assert.equal(advantage({ allied: { strength: 5 }, german: 2 }), 'All'); });
-      it('german > allied = Ger', function () { assert.equal(advantage({ allied: { strength: 2 }, german: 5 }), 'Ger'); });
-      it('equal = No', function () { assert.equal(advantage({ allied: { strength: 3 }, german: 3 }), 'No'); });
-      it('no allied = Ger', function () { assert.equal(advantage({ allied: null, german: 2 }), 'Ger'); });
-      it('no german = All', function () { assert.equal(advantage({ allied: { strength: 4 }, german: null }), 'All'); });
+      it('allied > german = All', function () { expect(advantage({ allied: { strength: 5 }, german: 2 })).toBe('All'); });
+      it('german > allied = Ger', function () { expect(advantage({ allied: { strength: 2 }, german: 5 })).toBe('Ger'); });
+      it('equal = No', function () { expect(advantage({ allied: { strength: 3 }, german: 3 })).toBe('No'); });
+      it('no allied = Ger', function () { expect(advantage({ allied: null, german: 2 })).toBe('Ger'); });
+      it('no german = All', function () { expect(advantage({ allied: { strength: 4 }, german: null })).toBe('All'); });
     });
 
     describe('combatResult', function () {
-      it('All/attack/die=1', function () { assert.deepEqual(combatResult('attack', 'All', 1), { a: 1 }); });
-      it('All/attack/die=3', function () { assert.deepEqual(combatResult('attack', 'All', 3), { a: 1, g: 1, c: true }); });
-      it('All/attack/die=6', function () { assert.deepEqual(combatResult('attack', 'All', 6), { g: 1, c: true }); });
-      it('Ger/attack/die=1', function () { assert.deepEqual(combatResult('attack', 'Ger', 1), { a: 3 }); });
-      it('Ger/defend/die=6', function () { assert.deepEqual(combatResult('defend', 'Ger', 6), {}); });
-      it('No/defend/die=1', function () { assert.deepEqual(combatResult('defend', 'No', 1), { a: 1 }); });
-      it('All/defend/die=1', function () { assert.deepEqual(combatResult('defend', 'All', 1), { g: 1, a: 1 }); });
-      it('No/attack/die=5', function () { assert.deepEqual(combatResult('attack', 'No', 5), { g: 1, c: true }); });
+      it('All/attack/die=1', function () { expect(combatResult('attack', 'All', 1)).toEqual({ a: 1 }); });
+      it('All/attack/die=3', function () { expect(combatResult('attack', 'All', 3)).toEqual({ a: 1, g: 1, c: true }); });
+      it('All/attack/die=6', function () { expect(combatResult('attack', 'All', 6)).toEqual({ g: 1, c: true }); });
+      it('Ger/attack/die=1', function () { expect(combatResult('attack', 'Ger', 1)).toEqual({ a: 3 }); });
+      it('Ger/defend/die=6', function () { expect(combatResult('defend', 'Ger', 6)).toEqual({}); });
+      it('No/defend/die=1', function () { expect(combatResult('defend', 'No', 1)).toEqual({ a: 1 }); });
+      it('All/defend/die=1', function () { expect(combatResult('defend', 'All', 1)).toEqual({ g: 1, a: 1 }); });
+      it('No/attack/die=5', function () { expect(combatResult('attack', 'No', 5)).toEqual({ g: 1, c: true }); });
     });
 
     describe('checkWinLoss', function () {
-      it('30 Corps in Arnhem = win', function () { resetGame(); game.locations.arnhem.corps = true; assert(checkWinLoss()); assert.equal(game.phase, 'gameover'); });
-      it('allied strength < 1 = lose', function () { resetGame(); game.locations.eindhoven.allied.strength = 0; assert(checkWinLoss()); });
-      it('turn > 6 = lose', function () { resetGame(); game.turn = 7; assert(checkWinLoss()); assert(game.over); });
-      it('ongoing = no result', function () { resetGame(); assert(!checkWinLoss()); });
+      it('30 Corps in Arnhem = win', function () { resetGame(); game.locations.arnhem.corps = true; expect(checkWinLoss()).toBe(true); expect(game.phase).toBe('gameover'); });
+      it('allied strength < 1 = lose', function () { resetGame(); game.locations.eindhoven.allied.strength = 0; expect(checkWinLoss()).toBe(true); });
+      it('turn > 6 = lose', function () { resetGame(); game.turn = 7; expect(checkWinLoss()).toBe(true); expect(game.over).toBe(true); });
+      it('ongoing = no result', function () { resetGame(); expect(checkWinLoss()).toBe(false); });
     });
 
     describe('unitDisplay', function () {
-      it('zh: 1st Airborne', function () { language = 'zh'; assert.equal(unitDisplay('1st Airborne'), '第1空降师'); });
-      it('zh: 101st Airborne', function () { language = 'zh'; assert.equal(unitDisplay('101st Airborne'), '第101空降师'); });
-      it('en: returns English', function () { language = 'en'; assert.equal(unitDisplay('1st Airborne'), '1st Airborne'); });
+      it('zh: 1st Airborne', function () { language = 'zh'; expect(unitDisplay('1st Airborne')).toBe('\u7B2C1\u7A7A\u964D\u5E08'); });
+      it('zh: 101st Airborne', function () { language = 'zh'; expect(unitDisplay('101st Airborne')).toBe('\u7B2C101\u7A7A\u964D\u5E08'); });
+      it('en: returns English', function () { language = 'en'; expect(unitDisplay('1st Airborne')).toBe('1st Airborne'); });
     });
 
     describe('locLabel', function () {
-      it('zh: Arnhem', function () { language = 'zh'; assert.equal(locLabel('arnhem'), '阿纳姆'); });
-      it('en: returns English', function () { language = 'en'; assert.equal(locLabel('arnhem'), 'Arnhem'); });
+      it('zh: Arnhem', function () { language = 'zh'; expect(locLabel('arnhem')).toBe('\u963F\u7EB3\u59C6'); });
+      it('en: returns English', function () { language = 'en'; expect(locLabel('arnhem')).toBe('Arnhem'); });
     });
 
     describe('t()', function () {
-      it('zh key', function () { language = 'zh'; assert.equal(t('attack'), '攻击'); });
-      it('en key', function () { language = 'en'; assert.equal(t('attack'), 'Attack'); });
+      it('zh key', function () { language = 'zh'; expect(t('attack')).toBe('\u653B\u51FB'); });
+      it('en key', function () { language = 'en'; expect(t('attack')).toBe('Attack'); });
     });
 
     describe('rollD6', function () {
-      it('always returns 1-6', function () { for (let i = 0; i < 200; i++) { const r = rollD6(); assert(r >= 1 && r <= 6); } });
+      it('always returns 1-6', function () { for (var i = 0; i < 200; i++) { var r = rollD6(); expect(r >= 1 && r <= 6).toBe(true); } });
     });
 
     describe('moveAirborne', function () {
-      it('moves to adjacent', function () { resetGame(); assert(moveAirborne('eindhoven', 'grave')); assert(!game.locations.eindhoven.allied); assert(game.locations.grave.allied); });
-      it('rejects non-adjacent', function () { resetGame(); assert(!moveAirborne('eindhoven', 'nijmegen')); });
-      it('rejects backward', function () { resetGame(); assert(!moveAirborne('grave', 'eindhoven')); });
-      it('merges strengths', function () { resetGame(); game.locations.eindhoven.allied.strength = 2; game.locations.grave.allied.strength = 3; moveAirborne('eindhoven', 'grave'); assert.equal(game.locations.grave.allied.strength, 5); });
-      it('caps at 6', function () { resetGame(); game.locations.eindhoven.allied.strength = 4; game.locations.grave.allied.strength = 4; moveAirborne('eindhoven', 'grave'); assert.equal(game.locations.grave.allied.strength, 6); });
-      it('no unit = false', function () { resetGame(); game.locations.eindhoven.allied = null; assert(!moveAirborne('eindhoven', 'grave')); });
+      it('moves to adjacent', function () { resetGame(); expect(moveAirborne('eindhoven', 'grave')).toBe(true); expect(game.locations.eindhoven.allied).toBe(null); expect(game.locations.grave.allied).not.toBe(null); });
+      it('rejects non-adjacent', function () { resetGame(); expect(moveAirborne('eindhoven', 'nijmegen')).toBe(false); });
+      it('rejects backward', function () { resetGame(); expect(moveAirborne('grave', 'eindhoven')).toBe(false); });
+      it('merges strengths', function () { resetGame(); game.locations.eindhoven.allied.strength = 2; game.locations.grave.allied.strength = 3; moveAirborne('eindhoven', 'grave'); expect(game.locations.grave.allied.strength).toBe(5); });
+      it('caps at 6', function () { resetGame(); game.locations.eindhoven.allied.strength = 4; game.locations.grave.allied.strength = 4; moveAirborne('eindhoven', 'grave'); expect(game.locations.grave.allied.strength).toBe(6); });
+      it('no unit = false', function () { resetGame(); game.locations.eindhoven.allied = null; expect(moveAirborne('eindhoven', 'grave')).toBe(false); });
     });
 
     describe('moveCorps', function () {
-      it('rejects non-allied target', function () { resetGame(); assert(!moveCorps('belgium', 'eindhoven')); });
-      it('moves into allied control', function () { resetGame(); game.locations.eindhoven.control = 6; game.locations.eindhoven.german = 3; assert(moveCorps('belgium', 'eindhoven')); assert(game.locations.eindhoven.corps); assert(!game.locations.belgium.corps); assert.equal(game.locations.eindhoven.german, null); });
-      it('rejects non-adjacent', function () { resetGame(); game.locations.eindhoven.control = 6; assert(!moveCorps('belgium', 'grave')); });
+      it('rejects non-allied target', function () { resetGame(); expect(moveCorps('belgium', 'eindhoven')).toBe(false); });
+      it('moves into allied control', function () { resetGame(); game.locations.eindhoven.control = 6; game.locations.eindhoven.german = 3; expect(moveCorps('belgium', 'eindhoven')).toBe(true); expect(game.locations.eindhoven.corps).toBe(true); expect(game.locations.belgium.corps).toBe(false); expect(game.locations.eindhoven.german).toBe(null); });
+      it('rejects non-adjacent', function () { resetGame(); game.locations.eindhoven.control = 6; expect(moveCorps('belgium', 'grave')).toBe(false); });
     });
 
     describe('applyGermanReinforcement', function () {
-      it('Arnhem +1', function () { resetGame(); const before = game.locations.arnhem.german; applyGermanReinforcement(); assert.equal(game.locations.arnhem.german, before + 1); });
-      it('sets phase advance', function () { resetGame(); applyGermanReinforcement(); assert.equal(game.phase, 'advance'); });
-      it('skip Nijmegen if Arnhem not german', function () { resetGame(); game.locations.arnhem.control = 6; const before = game.locations.nijmegen.german; applyGermanReinforcement(); assert.equal(game.locations.nijmegen.german, before); });
+      it('Arnhem +1', function () { resetGame(); var before = game.locations.arnhem.german; applyGermanReinforcement(); expect(game.locations.arnhem.german).toBe(before + 1); });
+      it('sets phase advance', function () { resetGame(); applyGermanReinforcement(); expect(game.phase).toBe('advance'); });
+      it('skip Nijmegen if Arnhem not german', function () { resetGame(); game.locations.arnhem.control = 6; var before = game.locations.nijmegen.german; applyGermanReinforcement(); expect(game.locations.nijmegen.german).toBe(before); });
     });
 
     describe('applyTurnAdvance', function () {
-      it('turn +1', function () { resetGame(); applyTurnAdvance(); assert.equal(game.turn, 2); });
-      it('back to battle', function () { resetGame(); applyTurnAdvance(); assert.equal(game.phase, 'battle'); });
-      it('game over at turn > 6', function () { resetGame(); game.turn = 6; applyTurnAdvance(); assert(game.over); });
+      it('turn +1', function () { resetGame(); applyTurnAdvance(); expect(game.turn).toBe(2); });
+      it('back to battle', function () { resetGame(); applyTurnAdvance(); expect(game.phase).toBe('battle'); });
+      it('game over at turn > 6', function () { resetGame(); game.turn = 6; applyTurnAdvance(); expect(game.over).toBe(true); });
     });
 
     describe('applySetup', function () {
-      it('phase becomes battle', function () { resetGame(); applySetup(); assert.equal(game.phase, 'battle'); });
+      it('phase becomes battle', function () { resetGame(); applySetup(); expect(game.phase).toBe('battle'); });
     });
 
     describe('applyAirborneReinforcement', function () {
-      it('sets phase turn', function () { resetGame(); applyAirborneReinforcement(); assert.equal(game.phase, 'turn'); });
-      it('skip if done', function () { resetGame(); game.airborneReinforced = true; applyAirborneReinforcement(); assert.equal(game.phase, 'turn'); });
+      it('sets phase turn', function () { resetGame(); applyAirborneReinforcement(); expect(game.phase).toBe('turn'); });
+      it('skip if done', function () { resetGame(); game.airborneReinforced = true; applyAirborneReinforcement(); expect(game.phase).toBe('turn'); });
     });
 
     describe('i18n integrity', function () {
       it('zh and en same keys', function () {
-        const keys = o => Object.keys(o).sort();
-        assert.deepEqual(keys(i18n.zh), keys(i18n.en));
-        ['phaseNames', 'phaseHelp', 'buttons', 'messages', 'locations', 'unitNames', 'mapTitles'].forEach(k => {
-          assert.deepEqual(keys(i18n.zh[k]), keys(i18n.en[k]));
+        var keys = function (o) { return Object.keys(o).sort(); };
+        expect(keys(i18n.zh)).toEqual(keys(i18n.en));
+        ['phaseNames', 'phaseHelp', 'buttons', 'messages', 'locations', 'unitNames', 'mapTitles'].forEach(function (k) {
+          expect(keys(i18n.zh[k])).toEqual(keys(i18n.en[k]));
         });
       });
       it('no empty translations', function () {
         function check(obj, path) {
-          for (const [k, v] of Object.entries(obj)) {
-            if (typeof v === 'string') assert(v.length > 0, 'empty at ' + path + '.' + k);
-            else if (typeof v === 'object') check(v, path + '.' + k);
+          for (var k in obj) {
+            if (typeof obj[k] === 'string') expect(obj[k].length).toBeGreaterThan(0);
+            else if (typeof obj[k] === 'object') check(obj[k], path + '.' + k);
           }
         }
         check(i18n.zh, 'zh');
@@ -144,7 +191,7 @@
       });
     });
 
-    mocha.run();
+    runTests();
   </script>
 </body>
 </html>
