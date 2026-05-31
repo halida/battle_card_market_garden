@@ -10,8 +10,14 @@
   <header class="topbar">
     <div>
       <h1>Market Garden 1944</h1>
-      <p>放置骰子、选择行动，带领 30 Corps 抵达 Arnhem。<a href="info.png" id="infoLink">游戏介绍</a></p>
+      <p><span data-i18n="tagline">放置骰子、选择行动，带领 30 Corps 抵达 Arnhem。</span><a href="info.png" id="infoLink" data-i18n="infoLink">游戏介绍</a></p>
     </div>
+    <label class="language-select"><span data-i18n="languageLabel">语言</span>
+      <select id="languageSelect">
+        <option value="zh">中文</option>
+        <option value="en">English</option>
+      </select>
+    </label>
   </header>
 
   <main class="layout">
@@ -31,33 +37,33 @@
 
     <aside class="side-panel">
       <section class="panel">
-        <h2>阶段</h2>
+        <h2 data-i18n="phaseTitle">阶段</h2>
         <ol id="phaseList" class="phase-list"></ol>
         <p id="phaseHelp" class="help">点击“开始游戏”进行空投修正。</p>
         <div class="last-events">
-          <h3>上一阶段事件</h3>
+          <h3 data-i18n="lastEventsTitle">上一阶段事件</h3>
           <div id="lastEvents">暂无</div>
         </div>
         <button id="primaryAction" class="primary">开始游戏</button>
-        <button id="resetGame">重开</button>
+        <button id="resetGame" data-i18n="resetButton">重开</button>
       </section>
 
       <section class="panel move-panel">
-        <h2>盟军移动</h2>
-        <p class="help">Allied Advance 阶段在地图上的 30C 右侧选择前进目标。</p>
+        <h2 data-i18n="moveTitle">盟军移动</h2>
+        <p class="help" data-i18n="moveHelp">Allied Advance 阶段在地图上的 30C 右侧选择前进目标。</p>
         <div class="move-grid">
-          <label>单位
+          <label><span data-i18n="unitLabel">单位</span>
             <select id="moveUnit"></select>
           </label>
-          <label>目标
+          <label><span data-i18n="targetLabel">目标</span>
             <select id="moveTarget"></select>
           </label>
         </div>
-        <button id="moveBtn">执行移动</button>
+        <button id="moveBtn" data-i18n="moveButton">执行移动</button>
       </section>
 
       <section class="panel">
-        <h2>记录</h2>
+        <h2 data-i18n="logTitle">记录</h2>
         <div id="log" class="log"></div>
       </section>
     </aside>
@@ -65,7 +71,7 @@
 
   <div id="infoModal" class="modal" hidden>
     <button id="closeInfo" class="modal-close" aria-label="关闭">×</button>
-    <img src="info.png" alt="游戏介绍">
+    <img src="info.png" alt="游戏介绍" data-i18n-alt="infoAlt">
   </div>
 
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
