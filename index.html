@@ -71,7 +71,154 @@
 
   <div id="infoModal" class="modal" hidden>
     <button id="closeInfo" class="modal-close" aria-label="关闭">×</button>
-    <img src="info.png" alt="游戏介绍" data-i18n-alt="infoAlt">
+    <div class="modal-body">
+      <h2>Battle Card: Market Garden 1944</h2>
+
+      <h3>游戏概述</h3>
+      <p>在盟军的「市场花园行动」期间，盟军试图夺取荷兰的重要桥梁并绕过德军防线。玩家扮演盟军指挥官，必须建立一条从比利时到 Arnhem 的连续补给线。</p>
+
+      <h4>胜利条件</h4>
+      <table>
+        <tr><th>结果</th><th>条件</th></tr>
+        <tr><td>胜利</td><td>30 Corps 进入 Arnhem</td></tr>
+        <tr><td>失败</td><td>任意盟军单位被消灭（Strength &lt; 1）</td></tr>
+        <tr><td>失败</td><td>Turn Die &gt; 6</td></tr>
+      </table>
+
+      <hr>
+
+      <h3>地图结构</h3>
+      <p>4 个关键地点呈线性排列：</p>
+      <pre>Belgium → Eindhoven → Grave → Nijmegen → Arnhem</pre>
+      <p>30 Corps 从 Belgium 出发。</p>
+
+      <h4>数据结构</h4>
+      <table>
+        <tr><th>字段</th><th>含义</th></tr>
+        <tr><td><code>allied_unit</code></td><td>盟军单位强度</td></tr>
+        <tr><td><code>german_unit</code></td><td>德军单位强度</td></tr>
+        <tr><td><code>control</code></td><td>1=德军控制, 6=盟军控制, 默认德军控制</td></tr>
+      </table>
+
+      <h4>控制判定</h4>
+      <p>每个地点有一个 Control Die，范围 <code>1</code>（德军）或 <code>6</code>（盟军）。</p>
+      <ul>
+        <li>德军强度 &gt; 盟军：德军控制</li>
+        <li>查表结果为 Allied 控制：切换成盟军控制</li>
+      </ul>
+
+      <h3>初始设置</h3>
+      <h4>各地兵力</h4>
+      <table>
+        <tr><th>地点</th><th>German Unit</th><th>Allied Unit</th></tr>
+        <tr><td>Arnhem</td><td>2</td><td>5</td></tr>
+        <tr><td>Nijmegen</td><td>1</td><td>—</td></tr>
+        <tr><td>Grave</td><td>2</td><td>6</td></tr>
+        <tr><td>Eindhoven</td><td>2</td><td>6</td></tr>
+      </table>
+
+      <h4>盟军空降部队</h4>
+      <table>
+        <tr><th>单位</th><th>部署地点</th></tr>
+        <tr><td>101st Airborne</td><td>Eindhoven</td></tr>
+        <tr><td>82nd Airborne</td><td>Grave</td></tr>
+        <tr><td>1st Airborne</td><td>Arnhem</td></tr>
+      </table>
+
+      <h4>其他</h4>
+      <table>
+        <tr><th>项目</th><th>位置</th></tr>
+        <tr><td>30 Corps</td><td>Belgium</td></tr>
+        <tr><td>Turn Die</td><td>Fog（两个面：Clear / Fog）</td></tr>
+      </table>
+
+      <hr>
+
+      <h3>空投修正（Airdrop）</h3>
+      <p>开始游戏时掷 1d6，将修正应用到所有盟军空降单位。</p>
+      <table>
+        <tr><th>骰值</th><th>修正</th></tr>
+        <tr><td>1~2</td><td>-2</td></tr>
+        <tr><td>3~4</td><td>-1</td></tr>
+        <tr><td>5~6</td><td>0</td></tr>
+      </table>
+      <p>例：1st Airborne = 5，掷出 2 → 5 - 2 = 3</p>
+
+      <hr>
+
+      <h3>游戏回合流程</h3>
+      <pre>Battle → German Reinforcement → Allied Advance → 1st Airborne Reinforcement → Advance Turn</pre>
+      <p>重复直到胜负产生。</p>
+
+      <hr>
+
+      <h3>1. Battle Phase</h3>
+      <p>玩家在每个地点选择攻击（Attack）或防御（Defend），逐个地点结算。</p>
+
+      <h4>战斗优势（Advantage）</h4>
+      <p>比较双方强度，高者获得 Advantage。</p>
+
+      <h4>Attack Table</h4>
+      <table>
+        <tr><th>优势</th><th>1</th><th>2,3,4</th><th>5,6</th></tr>
+        <tr><td><strong>All</strong></td><td>-1 Allied</td><td>-1 Allied, -1 German, Allied 控制</td><td>-1 German, Allied 控制</td></tr>
+        <tr><td><strong>Ger</strong></td><td>-3 Allied</td><td>-2 Allied, -1 German</td><td>-1 German, Allied 控制</td></tr>
+        <tr><td><strong>No</strong></td><td>-2 Allied</td><td>-1 Allied, -1 German</td><td>-1 German, Allied 控制</td></tr>
+      </table>
+
+      <h4>Defend Table</h4>
+      <table>
+        <tr><th>优势</th><th>1</th><th>2,3,4</th><th>5,6</th></tr>
+        <tr><td><strong>All</strong></td><td>-1 German, -1 Allied</td><td>No Effect</td><td>No Effect</td></tr>
+        <tr><td><strong>Ger</strong></td><td>-2 Allied</td><td>-1 Allied</td><td>No Effect</td></tr>
+        <tr><td><strong>No</strong></td><td>-1 Allied</td><td>-1 Allied, -1 German</td><td>-1 German</td></tr>
+      </table>
+
+      <h4>特殊规则</h4>
+      <table>
+        <tr><th>阵营</th><th>规则</th></tr>
+        <tr><td>德军</td><td>最小强度 = 1，不能被消灭</td></tr>
+        <tr><td>盟军</td><td>Strength &lt; 1 则立即被消灭（游戏失败）</td></tr>
+      </table>
+
+      <hr>
+
+      <h3>2. German Reinforcement</h3>
+      <p>从 Arnhem 开始往下检查，其德军单位 <code>Strength + 1</code>。</p>
+      <p>如果德军被消灭了，无法增援。</p>
+      <p>仅当 Arnhem 在德军控制下时，Nijmegen 的德军才增加。</p>
+
+      <hr>
+
+      <h3>3. Allied Advance</h3>
+      <p>玩家可移动：30 Corps 或任意盟军单位。</p>
+      <ul>
+        <li><strong>Airborne Advance</strong>：空降部队只能移动到相邻地点</li>
+        <li><strong>合并规则</strong>：Strength 相加，最大 6，超过部分损失</li>
+        <li><strong>30 Corps Advance</strong>：只能进入盟军控制地点（Control = 6），进入后移除德军单位</li>
+      </ul>
+
+      <hr>
+
+      <h3>4. 1st Airborne Reinforcement</h3>
+      <p>掷 1d6，若 <code>d6 &lt;= Turn Die</code>，则 1st Airborne +1 Strength，并把 Turn Die 移到 Clear。</p>
+      <p>此强化只能发生一次，完成后跳过此步骤。</p>
+
+      <hr>
+
+      <h3>5. Advance Turn</h3>
+      <pre>Turn Die += 1</pre>
+
+      <hr>
+
+      <h3>胜利 / 失败判定</h3>
+      <table>
+        <tr><th>条件</th><th>结果</th></tr>
+        <tr><td>30 Corps 到达 Arnhem</td><td>立即胜利</td></tr>
+        <tr><td>任意盟军单位 Strength &lt; 1</td><td>立即失败</td></tr>
+        <tr><td>Turn Die &gt; 6</td><td>立即失败</td></tr>
+      </table>
+    </div>
   </div>
 
   <footer class="footer">
