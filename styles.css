@@ -1,0 +1,288 @@
+:root {
+  color-scheme: dark;
+  --bg: #11130f;
+  --panel: rgba(28, 32, 24, 0.92);
+  --line: #4b573e;
+  --text: #f4ead0;
+  --muted: #bdb08d;
+  --gold: #d6a84f;
+  --allied: #6aa84f;
+  --german: #111;
+  --control: #888;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #2f3829, var(--bg));
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button, select {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #20281c;
+  color: var(--text);
+  padding: 10px 12px;
+  font: inherit;
+}
+
+button { cursor: pointer; }
+button:hover { border-color: var(--gold); }
+button:disabled { cursor: not-allowed; opacity: .45; }
+button.primary { background: #6d4d16; border-color: var(--gold); font-weight: 700; }
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(12, 14, 10, .82);
+}
+
+h1, h2, p { margin: 0; }
+h1 { font-size: clamp(24px, 4vw, 42px); letter-spacing: .04em; }
+h2 { margin-bottom: 12px; color: var(--gold); font-size: 18px; }
+.topbar p { color: var(--muted); margin-top: 4px; }
+.topbar a { color: var(--gold); margin-left: 8px; }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, .78);
+}
+.modal[hidden] { display: none; }
+.modal img {
+  max-width: min(100%, 1100px);
+  max-height: 92vh;
+  border-radius: 12px;
+  box-shadow: 0 18px 55px rgba(0,0,0,.55);
+}
+.modal-close {
+  position: fixed;
+  right: 24px;
+  top: 18px;
+  z-index: 21;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.status-card {
+  min-width: 120px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 10px 14px;
+  background: var(--panel);
+}
+.map-turn-die {
+  position: absolute;
+  left: 20%;
+  top: 5%;
+  z-index: 4;
+  transform: translate(-50%, -50%);
+}
+.map-turn-die .die { opacity: .65; }
+.map-turn-die.clear-weather { left: 10%; }
+.status-card span, .status-card em { display: block; color: var(--muted); font-style: normal; }
+.status-card strong { display: block; font-size: 38px; line-height: 1; color: var(--gold); }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) 380px;
+  gap: 20px;
+  padding: 20px;
+}
+
+.map-panel, .panel {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: 0 18px 45px rgba(0,0,0,.35);
+}
+.map-panel { padding: 12px; overflow: auto; }
+.map-board { position: relative; max-width: 760px; margin: auto; }
+.map-board img { display: block; width: 100%; height: auto; border-radius: 12px; }
+
+.location {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+.location.allied-control { box-shadow: none; }
+.location[data-loc="arnhem"] { left: 54%; top: 16%; }
+.location[data-loc="nijmegen"] { left: 49%; top: 35%; }
+.location[data-loc="grave"] { left: 48%; top: 52%; }
+.location[data-loc="eindhoven"] { left: 45%; top: 70%; }
+.location[data-loc="belgium"] { left: 40%; top: 88%; }
+.pin-title { color: var(--gold); font-weight: 800; text-shadow: 0 1px 1px #000; }
+
+.map-board > .die {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+}
+.map-board > .die[data-loc="arnhem"][data-kind="control"] { left: 85%; top: 8%; }
+.map-board > .die[data-loc="arnhem"][data-kind="german"] { left: 74%; top: 8%; }
+.map-board > .die[data-loc="arnhem"][data-kind="allied"] { left: 57%; top: 14%; }
+.map-board > .die[data-loc="arnhem"][data-kind="corps"] { left: 72%; top: 19%; }
+
+.map-board > .die[data-loc="nijmegen"][data-kind="control"] { left: 88%; top: 30%; }
+.map-board > .die[data-loc="nijmegen"][data-kind="german"] { left: 76%; top: 30%; }
+.map-board > .die[data-loc="nijmegen"][data-kind="allied"] { left: 54%; top: 28%; }
+.map-board > .die[data-loc="nijmegen"][data-kind="corps"] { left: 66%; top: 33%; }
+
+.map-board > .die[data-loc="grave"][data-kind="control"] { left: 69%; top: 52%; }
+.map-board > .die[data-loc="grave"][data-kind="german"] { left: 58%; top: 52%; }
+.map-board > .die[data-loc="grave"][data-kind="allied"] { left: 42%; top: 44%; }
+.map-board > .die[data-loc="grave"][data-kind="corps"] { left: 55%; top: 41%; }
+
+.map-board > .die[data-loc="eindhoven"][data-kind="control"] { left: 46%; top: 77%; }
+.map-board > .die[data-loc="eindhoven"][data-kind="german"] { left: 46%; top: 68%; }
+.map-board > .die[data-loc="eindhoven"][data-kind="allied"] { left: 25%; top: 66%; }
+.map-board > .die[data-loc="eindhoven"][data-kind="corps"] { left: 35%; top: 71%; }
+
+.map-board > .die[data-loc="belgium"][data-kind="control"] { left: 83%; top: 84%; }
+.map-board > .die[data-loc="belgium"][data-kind="german"] { left: 39%; top: 83%; }
+.map-board > .die[data-loc="belgium"][data-kind="allied"] { left: 45%; top: 84%; }
+.map-board > .die[data-loc="belgium"][data-kind="corps"] { left: 27%; top: 90%; }
+
+.die {
+  width: 50px;
+  height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,.25);
+  color: #fff;
+  font-weight: 900;
+  box-shadow: inset 0 -5px 0 rgba(0,0,0,.18), 0 4px 10px rgba(0,0,0,.24);
+}
+.die.allied { background: var(--allied); }
+.die.german { background: var(--german); }
+.die.control { background: var(--control); }
+.die.control.allied { background: var(--allied); }
+.die.control.german { background: var(--german); }
+.die.corps { background: var(--allied); color: #fff; font-size: 12px; }
+.die.roll { background: var(--gold); color: #1a1204; }
+.die.turn { background: var(--gold); color: #1a1204; }
+.die.used { opacity: .45; }
+.map-order {
+  position: absolute;
+  z-index: 4;
+  width: 86px;
+  padding: 6px 8px;
+  transform: translateY(-50%);
+  background: rgba(32, 40, 28, .86);
+}
+.map-order[data-loc="arnhem"] { left: 61%; top: 14%; }
+.map-order[data-loc="nijmegen"] { left: 58%; top: 31%; }
+.map-order[data-loc="grave"] { left: 46%; top: 44%; }
+.map-order[data-loc="eindhoven"] { left: 29%; top: 66%; }
+.map-order[data-loc="belgium"] { left: 49%; top: 84%; }
+.map-advance {
+  position: absolute;
+  z-index: 4;
+  width: 92px;
+  padding: 6px 8px;
+  transform: translateY(-50%);
+  background: rgba(32, 40, 28, .86);
+}
+.map-advance[data-type="airborne"][data-from="arnhem"] { left: 61%; top: 14%; }
+.map-advance[data-type="airborne"][data-from="nijmegen"] { left: 58%; top: 31%; }
+.map-advance[data-type="airborne"][data-from="grave"] { left: 46%; top: 44%; }
+.map-advance[data-type="airborne"][data-from="eindhoven"] { left: 29%; top: 66%; }
+.map-advance[data-type="airborne"][data-from="belgium"] { left: 49%; top: 84%; }
+.map-advance[data-type="corps"][data-from="arnhem"] { left: 76%; top: 19%; }
+.map-advance[data-type="corps"][data-from="nijmegen"] { left: 64%; top: 32%; }
+.map-advance[data-type="corps"][data-from="grave"] { left: 59%; top: 41%; }
+.map-advance[data-type="corps"][data-from="eindhoven"] { left: 39%; top: 71%; }
+.map-advance[data-type="corps"][data-from="belgium"] { left: 31%; top: 90%; }
+.orders-panel .orders,
+.move-panel .move-grid,
+.move-panel #moveBtn { display: none; }
+
+.side-panel { display: grid; gap: 14px; align-content: start; }
+.panel { padding: 16px; }
+.phase-list {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding-left: 22px;
+}
+.phase-list li {
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: help;
+}
+.phase-list li.active {
+  border-color: var(--gold);
+  background: rgba(214, 168, 79, .18);
+  color: var(--text);
+  font-weight: 800;
+}
+.help { color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+.last-events {
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px dashed rgba(255,255,255,.2);
+  border-radius: 10px;
+  background: rgba(0,0,0,.18);
+}
+.last-events h3 {
+  margin: 0 0 8px;
+  color: var(--gold);
+  font-size: 14px;
+}
+.last-events p {
+  margin: 0 0 6px;
+  color: #dfd3b0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.last-events p:last-child { margin-bottom: 0; }
+.orders { display: grid; gap: 8px; }
+.order-row, .move-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: end;
+}
+.order-row label, .move-grid label { display: grid; gap: 5px; color: var(--muted); }
+#dicePool { display: flex; flex-wrap: wrap; gap: 8px; }
+.log {
+  max-height: 260px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  color: #dfd3b0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.log p { padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,.15); }
+
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .side-panel { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  .topbar { align-items: stretch; flex-direction: column; }
+  .layout { padding: 10px; }
+  .location { min-width: 110px; padding: 6px; }
+  .die { width: 34px; height: 34px; border-radius: 8px; }
+}

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Battle Card: Market Garden 1944</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Market Garden 1944</h1>
+      <p>放置骰子、选择行动，带领 30 Corps 抵达 Arnhem。<a href="info.png" id="infoLink">游戏介绍</a></p>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="map-panel">
+      <div id="mapBoard" class="map-board">
+        <img src="map.png" alt="Market Garden map">
+        <div class="map-turn-die">
+          <strong id="turnDie" class="die turn">1</strong>
+        </div>
+        <div class="location" data-loc="arnhem"></div>
+        <div class="location" data-loc="nijmegen"></div>
+        <div class="location" data-loc="grave"></div>
+        <div class="location" data-loc="eindhoven"></div>
+        <div class="location" data-loc="belgium"></div>
+      </div>
+    </section>
+
+    <aside class="side-panel">
+      <section class="panel">
+        <h2>阶段</h2>
+        <ol id="phaseList" class="phase-list"></ol>
+        <p id="phaseHelp" class="help">点击“开始游戏”进行空投修正。</p>
+        <div class="last-events">
+          <h3>上一阶段事件</h3>
+          <div id="lastEvents">暂无</div>
+        </div>
+        <button id="primaryAction" class="primary">开始游戏</button>
+        <button id="resetGame">重开</button>
+      </section>
+
+      <section class="panel move-panel">
+        <h2>盟军移动</h2>
+        <p class="help">Allied Advance 阶段在地图上的 30C 右侧选择前进目标。</p>
+        <div class="move-grid">
+          <label>单位
+            <select id="moveUnit"></select>
+          </label>
+          <label>目标
+            <select id="moveTarget"></select>
+          </label>
+        </div>
+        <button id="moveBtn">执行移动</button>
+      </section>
+
+      <section class="panel">
+        <h2>记录</h2>
+        <div id="log" class="log"></div>
+      </section>
+    </aside>
+  </main>
+
+  <div id="infoModal" class="modal" hidden>
+    <button id="closeInfo" class="modal-close" aria-label="关闭">×</button>
+    <img src="info.png" alt="游戏介绍">
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
