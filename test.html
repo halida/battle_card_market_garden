@@ -1,0 +1,150 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Battle Card - Tests</title>
+  <link rel="stylesheet" href="https://unpkg.com/mocha@10/mocha.css">
+</head>
+<body>
+  <div id="mocha"></div>
+  <div id="log" style="display:none"></div>
+  <div id="mapBoard" style="display:none"></div>
+  <div id="orders" style="display:none"></div>
+  <div id="moveUnit" style="display:none"></div>
+  <div id="moveTarget" style="display:none"></div>
+  <div id="turnDie" style="display:none"></div>
+  <div id="phaseList" style="display:none"></div>
+  <div id="phaseHelp" style="display:none"></div>
+  <div id="lastEvents" style="display:none"></div>
+  <div id="primaryAction" style="display:none"></div>
+  <div id="moveBtn" style="display:none"></div>
+  <div id="dicePool" style="display:none"></div>
+  <div class="map-turn-die" style="display:none"></div>
+  <select id="languageSelect"><option value="zh"><option value="en"></select>
+  <button id="closeInfo"></button>
+
+  <script src="https://unpkg.com/jquery@3.7/dist/jquery.min.js"></script>
+  <script src="https://unpkg.com/chai@4/chai.js"></script>
+  <script src="https://unpkg.com/mocha@10/mocha.js"></script>
+  <script>mocha.setup('bdd')</script>
+  <script src="app.js"></script>
+  <script>
+    const assert = chai.assert;
+
+    function resetGame() { game = initialGame(); }
+
+    describe('initialGame', function () {
+      it('returns valid state', function () {
+        resetGame();
+        assert.equal(game.phase, 'setup');
+        assert.equal(game.turn, 1);
+        assert.equal(game.locations.arnhem.allied.strength, 5);
+      });
+    });
+
+    describe('advantage', function () {
+      it('allied > german = All', function () { assert.equal(advantage({ allied: { strength: 5 }, german: 2 }), 'All'); });
+      it('german > allied = Ger', function () { assert.equal(advantage({ allied: { strength: 2 }, german: 5 }), 'Ger'); });
+      it('equal = No', function () { assert.equal(advantage({ allied: { strength: 3 }, german: 3 }), 'No'); });
+      it('no allied = Ger', function () { assert.equal(advantage({ allied: null, german: 2 }), 'Ger'); });
+      it('no german = All', function () { assert.equal(advantage({ allied: { strength: 4 }, german: null }), 'All'); });
+    });
+
+    describe('combatResult', function () {
+      it('All/attack/die=1', function () { assert.deepEqual(combatResult('attack', 'All', 1), { a: 1 }); });
+      it('All/attack/die=3', function () { assert.deepEqual(combatResult('attack', 'All', 3), { a: 1, g: 1, c: true }); });
+      it('All/attack/die=6', function () { assert.deepEqual(combatResult('attack', 'All', 6), { g: 1, c: true }); });
+      it('Ger/attack/die=1', function () { assert.deepEqual(combatResult('attack', 'Ger', 1), { a: 3 }); });
+      it('Ger/defend/die=6', function () { assert.deepEqual(combatResult('defend', 'Ger', 6), {}); });
+      it('No/defend/die=1', function () { assert.deepEqual(combatResult('defend', 'No', 1), { a: 1 }); });
+      it('All/defend/die=1', function () { assert.deepEqual(combatResult('defend', 'All', 1), { g: 1, a: 1 }); });
+      it('No/attack/die=5', function () { assert.deepEqual(combatResult('attack', 'No', 5), { g: 1, c: true }); });
+    });
+
+    describe('checkWinLoss', function () {
+      it('30 Corps in Arnhem = win', function () { resetGame(); game.locations.arnhem.corps = true; assert(checkWinLoss()); assert.equal(game.phase, 'gameover'); });
+      it('allied strength < 1 = lose', function () { resetGame(); game.locations.eindhoven.allied.strength = 0; assert(checkWinLoss()); });
+      it('turn > 6 = lose', function () { resetGame(); game.turn = 7; assert(checkWinLoss()); assert(game.over); });
+      it('ongoing = no result', function () { resetGame(); assert(!checkWinLoss()); });
+    });
+
+    describe('unitDisplay', function () {
+      it('zh: 1st Airborne', function () { language = 'zh'; assert.equal(unitDisplay('1st Airborne'), '第1空降师'); });
+      it('zh: 101st Airborne', function () { language = 'zh'; assert.equal(unitDisplay('101st Airborne'), '第101空降师'); });
+      it('en: returns English', function () { language = 'en'; assert.equal(unitDisplay('1st Airborne'), '1st Airborne'); });
+    });
+
+    describe('locLabel', function () {
+      it('zh: Arnhem', function () { language = 'zh'; assert.equal(locLabel('arnhem'), '阿纳姆'); });
+      it('en: returns English', function () { language = 'en'; assert.equal(locLabel('arnhem'), 'Arnhem'); });
+    });
+
+    describe('t()', function () {
+      it('zh key', function () { language = 'zh'; assert.equal(t('attack'), '攻击'); });
+      it('en key', function () { language = 'en'; assert.equal(t('attack'), 'Attack'); });
+    });
+
+    describe('rollD6', function () {
+      it('always returns 1-6', function () { for (let i = 0; i < 200; i++) { const r = rollD6(); assert(r >= 1 && r <= 6); } });
+    });
+
+    describe('moveAirborne', function () {
+      it('moves to adjacent', function () { resetGame(); assert(moveAirborne('eindhoven', 'grave')); assert(!game.locations.eindhoven.allied); assert(game.locations.grave.allied); });
+      it('rejects non-adjacent', function () { resetGame(); assert(!moveAirborne('eindhoven', 'nijmegen')); });
+      it('rejects backward', function () { resetGame(); assert(!moveAirborne('grave', 'eindhoven')); });
+      it('merges strengths', function () { resetGame(); game.locations.eindhoven.allied.strength = 2; game.locations.grave.allied.strength = 3; moveAirborne('eindhoven', 'grave'); assert.equal(game.locations.grave.allied.strength, 5); });
+      it('caps at 6', function () { resetGame(); game.locations.eindhoven.allied.strength = 4; game.locations.grave.allied.strength = 4; moveAirborne('eindhoven', 'grave'); assert.equal(game.locations.grave.allied.strength, 6); });
+      it('no unit = false', function () { resetGame(); game.locations.eindhoven.allied = null; assert(!moveAirborne('eindhoven', 'grave')); });
+    });
+
+    describe('moveCorps', function () {
+      it('rejects non-allied target', function () { resetGame(); assert(!moveCorps('belgium', 'eindhoven')); });
+      it('moves into allied control', function () { resetGame(); game.locations.eindhoven.control = 6; game.locations.eindhoven.german = 3; assert(moveCorps('belgium', 'eindhoven')); assert(game.locations.eindhoven.corps); assert(!game.locations.belgium.corps); assert.equal(game.locations.eindhoven.german, null); });
+      it('rejects non-adjacent', function () { resetGame(); game.locations.eindhoven.control = 6; assert(!moveCorps('belgium', 'grave')); });
+    });
+
+    describe('applyGermanReinforcement', function () {
+      it('Arnhem +1', function () { resetGame(); const before = game.locations.arnhem.german; applyGermanReinforcement(); assert.equal(game.locations.arnhem.german, before + 1); });
+      it('sets phase advance', function () { resetGame(); applyGermanReinforcement(); assert.equal(game.phase, 'advance'); });
+      it('skip Nijmegen if Arnhem not german', function () { resetGame(); game.locations.arnhem.control = 6; const before = game.locations.nijmegen.german; applyGermanReinforcement(); assert.equal(game.locations.nijmegen.german, before); });
+    });
+
+    describe('applyTurnAdvance', function () {
+      it('turn +1', function () { resetGame(); applyTurnAdvance(); assert.equal(game.turn, 2); });
+      it('back to battle', function () { resetGame(); applyTurnAdvance(); assert.equal(game.phase, 'battle'); });
+      it('game over at turn > 6', function () { resetGame(); game.turn = 6; applyTurnAdvance(); assert(game.over); });
+    });
+
+    describe('applySetup', function () {
+      it('phase becomes battle', function () { resetGame(); applySetup(); assert.equal(game.phase, 'battle'); });
+    });
+
+    describe('applyAirborneReinforcement', function () {
+      it('sets phase turn', function () { resetGame(); applyAirborneReinforcement(); assert.equal(game.phase, 'turn'); });
+      it('skip if done', function () { resetGame(); game.airborneReinforced = true; applyAirborneReinforcement(); assert.equal(game.phase, 'turn'); });
+    });
+
+    describe('i18n integrity', function () {
+      it('zh and en same keys', function () {
+        const keys = o => Object.keys(o).sort();
+        assert.deepEqual(keys(i18n.zh), keys(i18n.en));
+        ['phaseNames', 'phaseHelp', 'buttons', 'messages', 'locations', 'unitNames', 'mapTitles'].forEach(k => {
+          assert.deepEqual(keys(i18n.zh[k]), keys(i18n.en[k]));
+        });
+      });
+      it('no empty translations', function () {
+        function check(obj, path) {
+          for (const [k, v] of Object.entries(obj)) {
+            if (typeof v === 'string') assert(v.length > 0, 'empty at ' + path + '.' + k);
+            else if (typeof v === 'object') check(v, path + '.' + k);
+          }
+        }
+        check(i18n.zh, 'zh');
+        check(i18n.en, 'en');
+      });
+    });
+
+    mocha.run();
+  </script>
+</body>
+</html>
