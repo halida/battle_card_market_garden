@@ -6,6 +6,8 @@ A single-page Print & Play solitaire wargame about Operation Market Garden. Play
 
 Open `index.html` in any browser. No server or build step needed.
 
+**[Play online](https://blog.linjunhalida.com/battle_card_market_garden/)**
+
 ## Features
 
 - Dice-driven combat system with Attack/Defend tables
